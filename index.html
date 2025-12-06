@@ -56,61 +56,89 @@ Full autofill + auto-run: ?startDate=2025-01-01&termMonths=36&annualMiles=12000<
     </details>
 
     <script>
-        function calculate() {
-            const startDate = new Date(document.getElementById('startDate').value);
-            const termMonths = parseInt(document.getElementById('termMonths').value);
-            const annualMiles = parseFloat(document.getElementById('annualMiles').value);
+      function calculate(outputAsJson = false) {
+          const startDate = new Date(document.getElementById('startDate').value);
+          const termMonths = parseInt(document.getElementById('termMonths').value);
+          const annualMiles = parseFloat(document.getElementById('annualMiles').value);
 
-            if (isNaN(startDate) || isNaN(termMonths) || isNaN(annualMiles)) {
-                document.getElementById('result').innerHTML = 'Please fill all fields correctly.';
-                return;
-            }
+          if (isNaN(startDate) || isNaN(termMonths) || isNaN(annualMiles)) {
+              if (outputAsJson) {
+                  return { error: 'Please fill all fields correctly.' };
+              }
+              document.getElementById('result').innerHTML = 'Please fill all fields correctly.';
+              return;
+          }
 
-            const today = new Date(); // Uses device's current date
-            const endDate = new Date(startDate);
-            endDate.setMonth(endDate.getMonth() + termMonths);
+          const today = new Date(); // Uses device's current date (Dec 05, 2025)
+          const endDate = new Date(startDate);
+          endDate.setMonth(endDate.getMonth() + termMonths);
 
-            const elapsedDays = Math.max(0, Math.floor((today - startDate) / (1000 * 60 * 60 * 24)));
-            const totalDays = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24));
+          const elapsedDays = Math.max(0, Math.floor((today - startDate) / (1000 * 60 * 60 * 24)));
+          const totalDays = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24));
 
-            if (totalDays === 0) {
-                document.getElementById('result').innerHTML = 'Lease term too short.';
-                return;
-            }
+          if (totalDays === 0) {
+              if (outputAsJson) {
+                  return { error: 'Lease term too short.' };
+              }
+              document.getElementById('result').innerHTML = 'Lease term too short.';
+              return;
+          }
 
-            const totalMiles = annualMiles * (termMonths / 12);
-            const fraction = Math.min(1, elapsedDays / totalDays); // Cap at 100%
-            const currentCap = Math.round(totalMiles * fraction);
+          const totalMiles = annualMiles * (termMonths / 12);
+          const fraction = Math.min(1, elapsedDays / totalDays); // Cap at 100%
+          const currentCap = Math.round(totalMiles * fraction);
 
-            document.getElementById('result').innerHTML = `
-                <strong>As of ${today.toLocaleDateString()}:</strong><br>
-                Current mileage cap: <strong>${currentCap.toLocaleString()} miles</strong><br>
-                (Total allowed: ${Math.round(totalMiles).toLocaleString()} miles)
-            `;
-        }
+          const result = {
+              asOf: today.toISOString().split('T')[0], // YYYY-MM-DD
+              currentCap: currentCap,
+              totalMiles: Math.round(totalMiles),
+              elapsedDays: elapsedDays,
+              totalDays: totalDays,
+              fraction: fraction
+          };
 
-        // Load from URL params
-        function loadFromURL() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const startDate = urlParams.get('startDate');
-            const termMonths = urlParams.get('termMonths');
-            const annualMiles = urlParams.get('annualMiles');
+          if (outputAsJson) {
+              // Output JSON for API mode
+              document.body.innerHTML = `<pre>${JSON.stringify(result, null, 2)}</pre>`;
+              return result;
+          }
 
-            if (startDate) document.getElementById('startDate').value = startDate;
-            if (termMonths) document.getElementById('termMonths').value = termMonths;
-            if (annualMiles) document.getElementById('annualMiles').value = annualMiles;
+          // HTML mode (original)
+          document.getElementById('result').innerHTML = `
+              <strong>As of ${today.toLocaleDateString()}:</strong><br>
+              Current mileage cap: <strong>${currentCap.toLocaleString()} miles</strong><br>
+              (Total allowed: ${Math.round(totalMiles).toLocaleString()} miles)
+          `;
+      }
 
-            // Auto-run if all params present
-            if (startDate && termMonths && annualMiles) {
-                calculate();
-            }
-        }
+      // Load from URL params
+      function loadFromURL() {
+          const urlParams = new URLSearchParams(window.location.search);
+          const startDate = urlParams.get('startDate');
+          const termMonths = urlParams.get('termMonths');
+          const annualMiles = urlParams.get('annualMiles');
+          const format = urlParams.get('format');
 
-        // Run on load
-        window.onload = loadFromURL;
+          if (startDate) document.getElementById('startDate').value = startDate;
+          if (termMonths) document.getElementById('termMonths').value = termMonths;
+          if (annualMiles) document.getElementById('annualMiles').value = annualMiles;
 
-        // Optional: Example defaults (remove if not needed)
-        document.getElementById('startDate').valueAsDate = new Date('2025-01-01');
+          const isJsonMode = format === 'json';
+
+          // Auto-run if all params present
+          if (startDate && termMonths && annualMiles) {
+              calculate(isJsonMode);
+          }
+      }
+
+      // Run on load
+      window.onload = loadFromURL;
+
+      // Optional: Example defaults (remove if not needed)
+      document.getElementById('startDate').valueAsDate = new Date('2025-01-01');
+
+      // Update button to support JSON (though rarely needed for web)
+      document.querySelector('button').onclick = () => calculate(false);
     </script>
 </body>
 </html>
