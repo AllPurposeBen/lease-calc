@@ -34,25 +34,32 @@
 
     <div id="result"></div>
 
-    <!-- New: Documentation on URL Parameters -->
+    <!-- Updated: Documentation on URL Parameters -->
     <details>
         <summary>Optional: Use URL Parameters for Autofill/Auto-Run</summary>
-        <p><strong>How it works:</strong> Append query parameters to the URL (e.g., after <code>lease-calc.html</code>) to pre-fill fields. If all three are provided, it auto-calculates on load.</p>
+        <p><strong>How it works:</strong> Append query parameters to the URL (e.g., after <code>index.html</code>) to pre-fill fields. If all three core params are provided, it auto-calculates on load. Use <code>format=json</code> for raw JSON output (API mode).</p>
         <ul>
-            <li><strong>Parameters:</strong>
+            <li><strong>Core Parameters:</strong>
                 <ul>
                     <li><code>startDate</code>: YYYY-MM-DD (e.g., 2025-01-01)</li>
                     <li><code>termMonths</code>: Number of months (e.g., 36)</li>
                     <li><code>annualMiles</code>: Annual allowance (e.g., 12000)</li>
                 </ul>
             </li>
-            <li><strong>Partial vs. Full:</strong> Use any subset to autofill—manual calc still needed unless all are set.</li>
+            <li><strong>Output Modes:</strong>
+                <ul>
+                    <li><code>format</code>: <code>html</code> (default: Web UI) or <code>json</code> (raw JSON for curl/scripts).</li>
+                </ul>
+            </li>
+            <li><strong>Partial vs. Full:</strong> Use any subset to autofill—manual calc still needed unless all core params are set. JSON mode requires all core params.</li>
         </ul>
         <p><strong>Examples:</strong></p>
         <pre>Autofill only term: ?termMonths=36
-
-Full autofill + auto-run: ?startDate=2025-01-01&termMonths=36&annualMiles=12000</pre>
-        <p>Copy the full URL from your browser's address bar to share pre-filled links. Uses today's date (Dec 05, 2025) for calcs.</p>
+    
+    Full autofill + auto-run (HTML): ?startDate=2025-01-01&termMonths=36&annualMiles=12000
+    
+    Full + JSON API (curl-friendly): ?startDate=2025-01-01&termMonths=36&annualMiles=12000&format=json</pre>
+        <p>Copy the full URL from your browser's address bar to share pre-filled links. Uses today's date (December 05, 2025) for calcs. JSON output includes <code>currentCap</code>, <code>totalMiles</code>, <code>elapsedDays</code>, etc.</p>
     </details>
 
     <script>
