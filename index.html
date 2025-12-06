@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Lease Mileage Calculator</title>
+    <style>
+        body { font-family: -apple-system, sans-serif; max-width: 400px; margin: 20px auto; padding: 20px; background: #f5f5f7; }
+        input, button { width: 100%; padding: 12px; margin: 10px 0; border: 1px solid #d2d2d7; border-radius: 8px; box-sizing: border-box; }
+        input[type="date"], input[type="number"] { font-size: 16px; }
+        button { background: #007aff; color: white; border: none; font-weight: bold; }
+        button:hover { background: #0056cc; }
+        #result { margin-top: 20px; padding: 15px; background: #e8f4fd; border-radius: 8px; font-size: 18px; font-weight: bold; }
+        label { display: block; margin: 10px 0 5px; font-weight: 600; }
+        details { margin-top: 20px; background: #f2f2f7; border-radius: 8px; padding: 10px; }
+        summary { font-weight: 600; cursor: pointer; }
+        pre { background: #e5e5ea; padding: 10px; border-radius: 4px; font-size: 14px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <h1>Lease Mileage Calculator</h1>
+    <form id="calcForm">
+        <label for="startDate">Lease Start Date:</label>
+        <input type="date" id="startDate" required>
+
+        <label for="termMonths">Lease Term (months):</label>
+        <input type="number" id="termMonths" min="1" required>
+
+        <label for="annualMiles">Annual Mileage Allowance:</label>
+        <input type="number" id="annualMiles" min="0" step="1" required>
+
+        <button type="button" onclick="calculate()">Calculate Current Cap</button>
+    </form>
+
+    <div id="result"></div>
+
+    <!-- New: Documentation on URL Parameters -->
+    <details>
+        <summary>Optional: Use URL Parameters for Autofill/Auto-Run</summary>
+        <p><strong>How it works:</strong> Append query parameters to the URL (e.g., after <code>lease-calc.html</code>) to pre-fill fields. If all three are provided, it auto-calculates on load.</p>
+        <ul>
+            <li><strong>Parameters:</strong>
+                <ul>
+                    <li><code>startDate</code>: YYYY-MM-DD (e.g., 2025-01-01)</li>
+                    <li><code>termMonths</code>: Number of months (e.g., 36)</li>
+                    <li><code>annualMiles</code>: Annual allowance (e.g., 12000)</li>
+                </ul>
+            </li>
+            <li><strong>Partial vs. Full:</strong> Use any subset to autofill—manual calc still needed unless all are set.</li>
+        </ul>
+        <p><strong>Examples:</strong></p>
+        <pre>Autofill only term: ?termMonths=36
+
+Full autofill + auto-run: ?startDate=2025-01-01&termMonths=36&annualMiles=12000</pre>
+        <p>Copy the full URL from your browser's address bar to share pre-filled links. Uses today's date (Dec 05, 2025) for calcs.</p>
+    </details>
+
+    <script>
+        function calculate() {
+            const startDate = new Date(document.getElementById('startDate').value);
+            const termMonths = parseInt(document.getElementById('termMonths').value);
+            const annualMiles = parseFloat(document.getElementById('annualMiles').value);
+
+            if (isNaN(startDate) || isNaN(termMonths) || isNaN(annualMiles)) {
+                document.getElementById('result').innerHTML = 'Please fill all fields correctly.';
+                return;
+            }
+
+            const today = new Date(); // Uses device's current date
+            const endDate = new Date(startDate);
+            endDate.setMonth(endDate.getMonth() + termMonths);
+
+            const elapsedDays = Math.max(0, Math.floor((today - startDate) / (1000 * 60 * 60 * 24)));
+            const totalDays = Math.floor((endDate - startDate) / (1000 * 60 * 60 * 24));
+
+            if (totalDays === 0) {
+                document.getElementById('result').innerHTML = 'Lease term too short.';
+                return;
+            }
+
+            const totalMiles = annualMiles * (termMonths / 12);
+            const fraction = Math.min(1, elapsedDays / totalDays); // Cap at 100%
+            const currentCap = Math.round(totalMiles * fraction);
+
+            document.getElementById('result').innerHTML = `
+                <strong>As of ${today.toLocaleDateString()}:</strong><br>
+                Current mileage cap: <strong>${currentCap.toLocaleString()} miles</strong><br>
+                (Total allowed: ${Math.round(totalMiles).toLocaleString()} miles)
+            `;
+        }
+
+        // Load from URL params
+        function loadFromURL() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const startDate = urlParams.get('startDate');
+            const termMonths = urlParams.get('termMonths');
+            const annualMiles = urlParams.get('annualMiles');
+
+            if (startDate) document.getElementById('startDate').value = startDate;
+            if (termMonths) document.getElementById('termMonths').value = termMonths;
+            if (annualMiles) document.getElementById('annualMiles').value = annualMiles;
+
+            // Auto-run if all params present
+            if (startDate && termMonths && annualMiles) {
+                calculate();
+            }
+        }
+
+        // Run on load
+        window.onload = loadFromURL;
+
+        // Optional: Example defaults (remove if not needed)
+        document.getElementById('startDate').valueAsDate = new Date('2025-01-01');
+    </script>
+</body>
+</html>
