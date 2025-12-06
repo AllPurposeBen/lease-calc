@@ -2,7 +2,7 @@
 
 A simple, offline-capable web app to calculate your current mileage cap for a vehicle lease based on start date, term, and annual allowance. Prorates linearly by days elapsed. Built with vanilla HTML/CSS/JS—no backend needed.
 
-Live demo: [https://allpurposeben.github.io/lease-calc/](https://allpurposeben.github.io/lease-calc/).
+Live demo: [https://lmc.allpurposeben.info](https://lmc.allpurposeben.info).
 
 ## Features
 - **Web UI**: Mobile-friendly form with autofill via URL params.
